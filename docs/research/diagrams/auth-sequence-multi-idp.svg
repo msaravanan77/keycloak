@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1760 1265" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a-slate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
+    </marker>
+    <style>
+      .title    { font-size: 25px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-size: 13.5px; fill: #475569; }
+      .lifeline { stroke: #cbd5e1; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .hdrTitle { font-size: 13.5px; font-weight: 700; fill: #ffffff; }
+      .msg      { stroke: #1f2937; stroke-width: 1.75; fill: none; }
+      .ret      { stroke: #1f2937; stroke-width: 1.75; fill: none; stroke-dasharray: 6 4; }
+      .mlbl     { font-size: 11.5px; fill: #1f2937; text-anchor: middle; }
+      .mlbl-l   { font-size: 11.5px; fill: #1f2937; text-anchor: start; }
+      .bandLbl  { font-size: 14px; font-weight: 700; }
+      .extBox   { fill: #ffffff; stroke-width: 1.75; rx: 6; }
+      .note     { font-size: 11.5px; font-style: italic; fill: #475569; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1760" height="1265" fill="#f8fafc"/>
+
+  <text x="40" y="34" class="title">Keycloak — One Authentication Engine, Three Identity Sources</text>
+  <text x="40" y="55" class="subtitle">Sequence view: a local-password login, an LDAP-federated login, and a brokered external-IdP login all drive the same AuthenticationProcessor, and all converge on the same token-issuance path.</text>
+
+  <!-- ===== Lifeline headers ===== -->
+  <!-- L1 Browser x=120 -->
+  <rect x="20" y="70" width="200" height="46" rx="8" fill="#475569"/>
+  <text x="120" y="98" text-anchor="middle" class="hdrTitle">Browser</text>
+  <!-- L2 Keycloak HTTP endpoints x=400 -->
+  <rect x="300" y="70" width="200" height="46" rx="8" fill="#4f46e5"/>
+  <text x="400" y="91" text-anchor="middle" class="hdrTitle">Keycloak HTTP layer</text>
+  <text x="400" y="107" text-anchor="middle" font-size="9.5" fill="#e0e7ff">AuthorizationEndpoint / LoginActionsService</text>
+  <!-- L3 AuthenticationProcessor x=680 -->
+  <rect x="580" y="70" width="200" height="46" rx="8" fill="#7c3aed"/>
+  <text x="680" y="91" text-anchor="middle" class="hdrTitle">AuthenticationProcessor</text>
+  <text x="680" y="107" text-anchor="middle" font-size="10.5" fill="#ede9fe">flow engine</text>
+  <!-- L4 Identity Source x=960 -->
+  <rect x="860" y="70" width="200" height="46" rx="8" fill="#0d9488"/>
+  <text x="960" y="91" text-anchor="middle" class="hdrTitle">Identity Source</text>
+  <text x="960" y="107" text-anchor="middle" font-size="10.5" fill="#ccfbf1">swaps per scenario below</text>
+  <!-- L5 TokenEndpoint x=1240 -->
+  <rect x="1140" y="70" width="200" height="46" rx="8" fill="#4338ca"/>
+  <text x="1240" y="91" text-anchor="middle" class="hdrTitle">TokenEndpoint /</text>
+  <text x="1240" y="107" text-anchor="middle" font-size="10.5" fill="#e0e7ff">TokenManager · LoginProtocol</text>
+  <!-- L6 Client App x=1520 -->
+  <rect x="1420" y="70" width="200" height="46" rx="8" fill="#475569"/>
+  <text x="1520" y="98" text-anchor="middle" class="hdrTitle">Client Application</text>
+
+  <line x1="120" y1="118" x2="120" y2="1225" class="lifeline"/>
+  <line x1="400" y1="118" x2="400" y2="1225" class="lifeline"/>
+  <line x1="680" y1="118" x2="680" y2="1225" class="lifeline"/>
+  <line x1="960" y1="118" x2="960" y2="1225" class="lifeline"/>
+  <line x1="1240" y1="118" x2="1240" y2="1225" class="lifeline"/>
+  <line x1="1520" y1="118" x2="1520" y2="1225" class="lifeline"/>
+
+  <!-- ===== Shared opening ===== -->
+  <line x1="120" y1="150" x2="392" y2="150" class="msg" marker-end="url(#a-slate)"/>
+  <text x="260" y="144" class="mlbl">GET /realms/{realm}/protocol/openid-connect/auth</text>
+
+  <line x1="400" y1="182" x2="672" y2="182" class="msg" marker-end="url(#a-slate)"/>
+  <text x="540" y="176" class="mlbl">AuthorizationEndpoint → processor.authenticate()</text>
+
+  <line x1="680" y1="214" x2="128" y2="214" class="ret" marker-end="url(#a-slate)"/>
+  <text x="400" y="208" class="mlbl">challenge: render login form (or Kerberos negotiate, or IdP picker) — AuthenticationFlowContext.challenge()</text>
+
+  <!-- ===== Band A: local ===== -->
+  <rect x="30" y="240" width="1700" height="150" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+  <text x="46" y="262" class="bandLbl" fill="#c2410c">Scenario 1 · Local password + OTP</text>
+
+  <line x1="120" y1="284" x2="392" y2="284" class="msg" marker-end="url(#a-slate)"/>
+  <text x="260" y="278" class="mlbl">POST login-actions/authenticate (username + password)</text>
+
+  <line x1="400" y1="308" x2="672" y2="308" class="msg" marker-end="url(#a-slate)"/>
+  <text x="540" y="302" class="mlbl">authenticationAction() → UsernamePasswordForm.action()</text>
+
+  <line x1="680" y1="332" x2="952" y2="332" class="msg" marker-end="url(#a-slate)"/>
+  <text x="820" y="326" class="mlbl">credentialManager().isValid(password)  [CredentialProvider — local DB]</text>
+
+  <line x1="960" y1="356" x2="688" y2="356" class="ret" marker-end="url(#a-slate)"/>
+  <text x="820" y="350" class="mlbl">valid  (+ OTPFormAuthenticator if configured — same pattern)</text>
+
+  <text x="1650" y="378" text-anchor="end" class="note">BruteForceProtector checked before / after</text>
+
+  <!-- ===== Band B: LDAP ===== -->
+  <rect x="30" y="404" width="1700" height="204" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="46" y="426" class="bandLbl" fill="#1d4ed8">Scenario 2 · LDAP-federated user</text>
+
+  <line x1="120" y1="448" x2="392" y2="448" class="msg" marker-end="url(#a-slate)"/>
+  <text x="260" y="442" class="mlbl">POST login-actions/authenticate (username + password)</text>
+
+  <line x1="400" y1="472" x2="672" y2="472" class="msg" marker-end="url(#a-slate)"/>
+  <text x="540" y="466" class="mlbl">authenticationAction() → UsernamePasswordForm.action()</text>
+
+  <line x1="680" y1="496" x2="952" y2="496" class="msg" marker-end="url(#a-slate)"/>
+  <text x="820" y="490" class="mlbl">getUserByUsername()  [UserCacheSession miss → LDAPStorageProvider]</text>
+
+  <rect x="1040" y="512" width="160" height="28" class="extBox" stroke="#1d4ed8"/>
+  <text x="1120" y="530" text-anchor="middle" font-size="11.5" fill="#1d4ed8" font-weight="700">LDAP Directory</text>
+  <line x1="960" y1="520" x2="1032" y2="520" class="msg" marker-end="url(#a-slate)"/>
+  <text x="996" y="514" class="mlbl" font-size="10.5">JNDI bind / search</text>
+  <line x1="1040" y1="552" x2="968" y2="552" class="ret" marker-end="url(#a-slate)"/>
+  <text x="1004" y="547" class="mlbl" font-size="10.5">attributes</text>
+
+  <line x1="960" y1="574" x2="688" y2="574" class="ret" marker-end="url(#a-slate)"/>
+  <text x="820" y="568" class="mlbl">importUserFromLDAP() → local shadow UserModel (then cached)</text>
+
+  <line x1="680" y1="596" x2="952" y2="596" class="msg" marker-end="url(#a-slate)"/>
+  <text x="820" y="591" class="mlbl" font-size="10.5">credentialManager().isValid(password)  [proxy() → LDAP bind]  → valid</text>
+
+  <!-- ===== Band C: broker ===== -->
+  <rect x="30" y="622" width="1700" height="272" rx="10" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="46" y="644" class="bandLbl" fill="#6d28d9">Scenario 3 · Brokered external IdP (OIDC / SAML / Social)</text>
+
+  <line x1="120" y1="666" x2="952" y2="666" class="msg" marker-end="url(#a-slate)"/>
+  <text x="540" y="660" class="mlbl">GET /broker/{alias}/login  [IdentityBrokerService.performLogin()]</text>
+
+  <rect x="1040" y="682" width="160" height="28" class="extBox" stroke="#6d28d9"/>
+  <text x="1120" y="700" text-anchor="middle" font-size="11.5" fill="#6d28d9" font-weight="700">External IdP</text>
+  <line x1="960" y1="690" x2="1032" y2="690" class="msg" marker-end="url(#a-slate)"/>
+  <text x="996" y="684" class="mlbl" font-size="10.5">302 redirect</text>
+  <text x="1120" y="726" class="note">browser now leaves Keycloak entirely</text>
+
+  <line x1="120" y1="752" x2="1032" y2="752" class="ret" marker-end="url(#a-slate)"/>
+  <text x="580" y="746" class="mlbl">user authenticates directly at the external IdP</text>
+
+  <line x1="1040" y1="776" x2="968" y2="776" class="msg" marker-end="url(#a-slate)"/>
+  <text x="1004" y="770" class="mlbl" font-size="10">302 callback</text>
+  <line x1="960" y1="776" x2="128" y2="776" class="msg" marker-end="url(#a-slate)"/>
+  <text x="540" y="796" class="mlbl">callback ?code=... (or SAML Response) → AbstractOAuth2IdentityProvider.Endpoint / SAMLEndpoint</text>
+
+  <path d="M 960,812 C 1030,812 1030,832 960,832" class="msg" marker-end="url(#a-slate)"/>
+  <text x="1045" y="826" class="mlbl-l" font-size="10.5">exchange code server-to-server → BrokeredIdentityContext</text>
+
+  <line x1="960" y1="856" x2="688" y2="856" class="msg" marker-end="url(#a-slate)"/>
+  <text x="820" y="850" class="mlbl" font-size="10.5">authenticated(context) → match/create local user via FederatedIdentityModel</text>
+
+  <line x1="680" y1="880" x2="952" y2="880" class="ret" marker-end="url(#a-slate)"/>
+  <text x="820" y="874" class="mlbl" font-size="10.5">context.success()  (± first-broker-login / post-broker-login flow)</text>
+
+  <!-- ===== Convergence ===== -->
+  <text x="880" y="920" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">— all three scenarios converge here —</text>
+
+  <path d="M 680,946 C 750,946 750,966 680,966" class="msg" marker-end="url(#a-slate)"/>
+  <text x="770" y="960" class="mlbl-l" font-size="11">nextRequiredAction() → evaluate/execute Required Actions (verify email, update password, register OTP, …)</text>
+
+  <line x1="680" y1="990" x2="1232" y2="990" class="msg" marker-end="url(#a-slate)"/>
+  <text x="960" y="984" class="mlbl">authenticationComplete() → LoginProtocol.authenticated(authSession, userSession, clientSessionCtx)</text>
+
+  <path d="M 680,1014 C 750,1014 750,1034 680,1034" class="msg" marker-end="url(#a-slate)"/>
+  <text x="770" y="1028" class="mlbl-l" font-size="11">finishAuthentication(): attachSession() → creates UserSessionModel + AuthenticatedClientSessionModel</text>
+
+  <line x1="680" y1="1058" x2="128" y2="1058" class="msg" marker-end="url(#a-slate)"/>
+  <text x="400" y="1052" class="mlbl">redirectAfterSuccessfulFlow() → 302 (code for OIDC / SAML Response for SAML)</text>
+
+  <line x1="120" y1="1082" x2="1512" y2="1082" class="msg" marker-end="url(#a-slate)"/>
+  <text x="820" y="1076" class="mlbl">redirect_uri?code=...&amp;state=...</text>
+
+  <line x1="1520" y1="1106" x2="1248" y2="1106" class="msg" marker-end="url(#a-slate)"/>
+  <text x="1380" y="1100" class="mlbl">POST /protocol/openid-connect/token  grant_type=authorization_code&amp;code=...</text>
+
+  <path d="M 1240,1130 C 1300,1130 1300,1150 1240,1150" class="msg" marker-end="url(#a-slate)"/>
+  <text x="1320" y="1138" class="mlbl-l" font-size="10.5">AuthorizeClientUtil → AuthorizationCode-</text>
+  <text x="1320" y="1150" class="mlbl-l" font-size="10.5">GrantType → TokenManager…build()</text>
+
+  <path d="M 1240,1168 C 1300,1168 1300,1186 1240,1186" class="msg" marker-end="url(#a-slate)"/>
+  <text x="1320" y="1176" class="mlbl-l" font-size="10.5">encode() → SignatureProvider</text>
+  <text x="1320" y="1188" class="mlbl-l" font-size="10.5">(realm's active signing key)</text>
+
+  <line x1="1240" y1="1214" x2="1512" y2="1214" class="ret" marker-end="url(#a-slate)"/>
+  <text x="1380" y="1208" class="mlbl" font-size="11">200 OK { access_token, id_token, refresh_token, expires_in, scope }</text>
+
+  <text x="880" y="1240" text-anchor="middle" class="note">Whichever identity source authenticated the user, everything from "all three scenarios converge here" down is identical, unmodified code.</text>
+</svg>

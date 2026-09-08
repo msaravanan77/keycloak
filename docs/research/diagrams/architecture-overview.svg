@@ -1,0 +1,299 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1760 1340" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow-slate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrow-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#be123c"/>
+    </marker>
+    <style>
+      .title    { font-size: 26px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-size: 13.5px; fill: #475569; }
+      .lbl      { font-size: 12px; fill: #334155; }
+      .lbl-it   { font-size: 11.5px; fill: #475569; font-style: italic; }
+      .boxTitle { font-size: 14.5px; font-weight: 700; }
+      .boxLine  { font-size: 12px; fill: #334155; }
+      .bandName { font-size: 11px; font-weight: 700; letter-spacing: .06em; fill: #94a3b8; text-transform: uppercase; }
+      .box      { fill: #ffffff; stroke-width: 2; rx: 10; }
+    </style>
+  </defs>
+
+  <!-- page background -->
+  <rect x="0" y="0" width="1760" height="1340" fill="#f8fafc"/>
+
+  <!-- title -->
+  <text x="40" y="38" class="title">Keycloak — System Architecture</text>
+  <text x="40" y="60" class="subtitle">One request pipeline, one authentication flow engine, one persistence stack — feeding from three different kinds of identity source.</text>
+
+  <!-- cluster wrapper (drawn behind everything else) -->
+  <rect x="34" y="196" width="1706" height="946" rx="16" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="10 6"/>
+  <rect x="24" y="186" width="1706" height="946" rx="16" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="10 6"/>
+  <text x="44" y="190" text-anchor="start" class="bandName" fill="#64748b" font-size="10.5">Keycloak server node — replicated across a cluster</text>
+
+  <!-- ============ ROW A : ACTORS ============ -->
+  <text x="40" y="102" class="bandName">Actors / clients</text>
+  <g class="box" stroke="#475569">
+    <rect x="40" y="110" width="320" height="64" rx="10"/>
+    <text x="56" y="135" class="boxTitle" fill="#334155">Browser</text>
+    <text x="56" y="153" class="boxLine">End user, interactive login</text>
+  </g>
+  <g class="box" stroke="#475569">
+    <rect x="380" y="110" width="320" height="64" rx="10"/>
+    <text x="396" y="135" class="boxTitle" fill="#334155">Client Application</text>
+    <text x="396" y="153" class="boxLine">OAuth2 / OIDC / SAML relying party</text>
+  </g>
+  <g class="box" stroke="#475569">
+    <rect x="720" y="110" width="320" height="64" rx="10"/>
+    <text x="736" y="135" class="boxTitle" fill="#334155">Admin Console (JS SPA)</text>
+    <text x="736" y="153" class="boxLine">js/apps/admin-ui</text>
+  </g>
+  <g class="box" stroke="#475569">
+    <rect x="1060" y="110" width="320" height="64" rx="10"/>
+    <text x="1076" y="135" class="boxTitle" fill="#334155">Account Console (JS SPA)</text>
+    <text x="1076" y="153" class="boxLine">js/apps/account-ui</text>
+  </g>
+  <g class="box" stroke="#be123c">
+    <rect x="1400" y="110" width="320" height="64" rx="10"/>
+    <text x="1416" y="135" class="boxTitle" fill="#be123c">Kubernetes Operator</text>
+    <text x="1416" y="153" class="boxLine">separate control-plane process</text>
+  </g>
+
+  <line x1="700" y1="174" x2="700" y2="204" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <text x="710" y="193" class="lbl">HTTPS</text>
+
+  <!-- ============ ROW B : QUARKUS RUNTIME ============ -->
+  <g class="box" stroke="#2563eb">
+    <rect x="40" y="206" width="1340" height="100" rx="10"/>
+    <text x="56" y="231" class="boxTitle" fill="#1d4ed8">Quarkus Runtime — HTTP &amp; Request Pipeline</text>
+    <text x="56" y="251" class="boxLine">Vert.x HttpServer  →  RESTEasy Reactive routing (path-normalization / misdirected-request filters)</text>
+    <text x="56" y="269" class="boxLine">KeycloakHandlerChainCustomizer → TransactionalSessionHandler (creates/attaches KeycloakSession, begins tx) · FormBodyHandler</text>
+    <text x="56" y="287" class="boxLine">CloseSessionFilter (commit/rollback + close session)  ·  KeycloakSecurityHeadersFilter  ·  DefaultCors</text>
+  </g>
+  <g class="box" stroke="#2563eb">
+    <rect x="1400" y="206" width="320" height="100" rx="10"/>
+    <text x="1416" y="231" class="boxTitle" fill="#1d4ed8">kc.sh → KeycloakMain</text>
+    <text x="1416" y="251" class="boxLine">@QuarkusMain process entry point</text>
+    <text x="1416" y="269" class="boxLine">Picocli CLI → Quarkus.run(...)</text>
+    <text x="1416" y="287" class="boxLine">boots the pipeline at left</text>
+  </g>
+  <line x1="1400" y1="256" x2="1382" y2="256" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+  <line x1="700" y1="306" x2="700" y2="328" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW C : JAX-RS ROOTS ============ -->
+  <g class="box" stroke="#4338ca">
+    <rect x="40" y="330" width="660" height="60" rx="10"/>
+    <text x="56" y="356" class="boxTitle" fill="#3730a3">RealmsResource</text>
+    <text x="56" y="374" class="boxLine">@Path("/realms")  —  every realm-scoped endpoint hangs off this root</text>
+  </g>
+  <g class="box" stroke="#4338ca">
+    <rect x="720" y="330" width="660" height="60" rx="10"/>
+    <text x="736" y="356" class="boxTitle" fill="#3730a3">AdminRoot</text>
+    <text x="736" y="374" class="boxLine">@Path("/admin")  →  AdminPermissionEvaluator (RBAC or FGAP)</text>
+  </g>
+  <g class="box" stroke="#4338ca">
+    <rect x="1400" y="330" width="320" height="60" rx="10"/>
+    <text x="1416" y="356" class="boxTitle" fill="#3730a3">AccountLoader</text>
+    <text x="1416" y="374" class="boxLine">→ AccountRestService (self-service)</text>
+  </g>
+
+  <path d="M 1560 195 C 1620 240, 1000 290, 900 328" fill="none" stroke="#be123c" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-rose)"/>
+  <text x="1210" y="235" class="lbl-it" fill="#be123c">reconciles via Admin REST API (ordinary client)</text>
+
+  <line x1="370" y1="390" x2="370" y2="408" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1050" y1="390" x2="1050" y2="408" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW D : PROTOCOL ENDPOINTS ============ -->
+  <text x="40" y="404" class="bandName">Protocol &amp; flow endpoints</text>
+  <g class="box" stroke="#4f46e5">
+    <rect x="40" y="410" width="320" height="80" rx="10"/>
+    <text x="56" y="434" class="boxTitle" fill="#4338ca">AuthorizationEndpoint</text>
+    <text x="56" y="452" class="boxLine">/protocol/openid-connect/auth</text>
+    <text x="56" y="470" class="boxLine">starts the flow engine</text>
+  </g>
+  <g class="box" stroke="#4f46e5">
+    <rect x="380" y="410" width="320" height="80" rx="10"/>
+    <text x="396" y="434" class="boxTitle" fill="#4338ca">LoginActionsService</text>
+    <text x="396" y="452" class="boxLine">login-actions/* — resumes the</text>
+    <text x="396" y="470" class="boxLine">multi-step flow on each form POST</text>
+  </g>
+  <g class="box" stroke="#4f46e5">
+    <rect x="720" y="410" width="320" height="80" rx="10"/>
+    <text x="736" y="434" class="boxTitle" fill="#4338ca">IdentityBrokerService</text>
+    <text x="736" y="452" class="boxLine">/broker/{alias}/login · /endpoint</text>
+    <text x="736" y="470" class="boxLine">redirect out &amp; callback from an IdP</text>
+  </g>
+  <g class="box" stroke="#4f46e5">
+    <rect x="1060" y="410" width="320" height="80" rx="10"/>
+    <text x="1076" y="434" class="boxTitle" fill="#4338ca">SamlService</text>
+    <text x="1076" y="452" class="boxLine">/protocol/saml — SSO/SLO,</text>
+    <text x="1076" y="470" class="boxLine">POST/Redirect/Artifact bindings</text>
+  </g>
+  <g class="box" stroke="#4f46e5">
+    <rect x="1400" y="410" width="320" height="80" rx="10"/>
+    <text x="1416" y="434" class="boxTitle" fill="#4338ca">TokenEndpoint</text>
+    <text x="1416" y="452" class="boxLine">/protocol/openid-connect/token</text>
+    <text x="1416" y="470" class="boxLine">every OAuth2/OIDC/UMA2 grant type</text>
+  </g>
+
+  <line x1="200" y1="490" x2="330" y2="510" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+  <line x1="540" y1="490" x2="380" y2="510" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+  <line x1="880" y1="490" x2="420" y2="510" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+  <line x1="1220" y1="490" x2="900" y2="510" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+  <line x1="1560" y1="490" x2="1560" y2="510" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW E : CORE ENGINES ============ -->
+  <text x="40" y="506" class="bandName">Core engines (shared by every identity source)</text>
+  <g class="box" stroke="#7c3aed">
+    <rect x="40" y="512" width="660" height="80" rx="10"/>
+    <text x="56" y="536" class="boxTitle" fill="#6d28d9">AuthenticationProcessor — Flow Engine</text>
+    <text x="56" y="554" class="boxLine">walks the realm's AuthenticationFlow / Execution tree</text>
+    <text x="56" y="572" class="boxLine">(Authenticator SPI steps — same engine for every source below)</text>
+  </g>
+  <g class="box" stroke="#7c3aed">
+    <rect x="720" y="512" width="660" height="80" rx="10"/>
+    <text x="736" y="536" class="boxTitle" fill="#6d28d9">LoginProtocol SPI</text>
+    <text x="736" y="554" class="boxLine">OIDCLoginProtocol · SamlProtocol</text>
+    <text x="736" y="572" class="boxLine">authenticated() → mint code / build assertion</text>
+  </g>
+  <g class="box" stroke="#7c3aed">
+    <rect x="1400" y="512" width="320" height="80" rx="10"/>
+    <text x="1416" y="536" class="boxTitle" fill="#6d28d9">TokenManager</text>
+    <text x="1416" y="554" class="boxLine">mints + signs access / ID /</text>
+    <text x="1416" y="572" class="boxLine">refresh tokens via SignatureProvider</text>
+  </g>
+
+  <line x1="700" y1="552" x2="718" y2="552" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+  <text x="700" y="545" text-anchor="middle" class="lbl" fill="#6d28d9">authenticationComplete()</text>
+  <line x1="1560" y1="490" x2="1560" y2="510" stroke="#334155" stroke-width="2"/>
+  <line x1="1380" y1="552" x2="1398" y2="552" stroke="#334155" stroke-width="2" marker-end="url(#arrow-slate)"/>
+
+  <line x1="370" y1="592" x2="370" y2="610" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW E2 : AUTHZ SERVICES ============ -->
+  <g class="box" stroke="#a21caf">
+    <rect x="40" y="612" width="1680" height="60" rx="10"/>
+    <text x="56" y="638" class="boxTitle" fill="#86198f">Authorization Services — Fine-Grained Authz / UMA2</text>
+    <text x="56" y="656" class="boxLine">AuthorizationTokenService · DefaultPolicyEvaluator · Policy Providers (role / user / client / group / time / regex / js / aggregated) → RPT — also authorizes the Admin REST API itself (FGAP)</text>
+  </g>
+
+  <line x1="370" y1="672" x2="370" y2="690" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1050" y1="672" x2="1050" y2="690" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW F : IDENTITY-SOURCE SPIs ============ -->
+  <text x="40" y="686" class="bandName">Identity-source SPIs — the pluggable extension points</text>
+  <g class="box" stroke="#0d9488">
+    <rect x="40" y="692" width="660" height="80" rx="10"/>
+    <text x="56" y="716" class="boxTitle" fill="#0f766e">Authenticator SPI  (local)</text>
+    <text x="56" y="734" class="boxLine">UsernamePasswordForm · OTPFormAuthenticator</text>
+    <text x="56" y="752" class="boxLine">WebAuthnAuthenticator · SpnegoAuthenticator</text>
+  </g>
+  <g class="box" stroke="#0d9488">
+    <rect x="720" y="692" width="660" height="80" rx="10"/>
+    <text x="736" y="716" class="boxTitle" fill="#0f766e">IdentityProvider SPI  (brokering)</text>
+    <text x="736" y="734" class="boxLine">OIDCIdentityProvider · SAMLIdentityProvider</text>
+    <text x="736" y="752" class="boxLine">Social (Google/GitHub/…) · Keycloak-to-Keycloak</text>
+  </g>
+  <g class="box" stroke="#0d9488">
+    <rect x="1400" y="692" width="320" height="80" rx="10"/>
+    <text x="1416" y="716" class="boxTitle" fill="#0f766e">UserStorageProvider SPI</text>
+    <text x="1416" y="734" class="boxLine">(federation)</text>
+    <text x="1416" y="752" class="boxLine">LDAPStorageProvider · KerberosFederationProvider</text>
+  </g>
+
+  <line x1="370" y1="772" x2="370" y2="790" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1050" y1="772" x2="1050" y2="790" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-teal)"/>
+  <line x1="1050" y1="790" x2="1050" y2="772" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-teal)" transform="translate(24,0)"/>
+  <text x="1074" y="784" class="lbl-it" fill="#0f766e">redirect / callback</text>
+  <line x1="1560" y1="772" x2="1560" y2="790" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-teal)"/>
+  <line x1="1560" y1="790" x2="1560" y2="772" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-teal)" transform="translate(24,0)"/>
+  <text x="1584" y="784" class="lbl-it" fill="#0f766e">bind / query</text>
+
+  <!-- ============ ROW G : IDENTITY SOURCES ============ -->
+  <text x="40" y="786" class="bandName">Identity sources</text>
+  <g class="box" stroke="#d97706">
+    <rect x="40" y="792" width="660" height="80" rx="10"/>
+    <text x="56" y="816" class="boxTitle" fill="#b45309">Local Credentials — Keycloak's own DB</text>
+    <text x="56" y="834" class="boxLine">password / OTP / WebAuthn, validated via</text>
+    <text x="56" y="852" class="boxLine">CredentialProvider + BruteForceProtector</text>
+  </g>
+  <g class="box" stroke="#d97706">
+    <rect x="720" y="792" width="660" height="80" rx="10"/>
+    <text x="736" y="816" class="boxTitle" fill="#b45309">External IdPs — brokered</text>
+    <text x="736" y="834" class="boxLine">Google · GitHub · another Keycloak ·</text>
+    <text x="736" y="852" class="boxLine">any OIDC / SAML Identity Provider</text>
+  </g>
+  <g class="box" stroke="#d97706">
+    <rect x="1400" y="792" width="320" height="80" rx="10"/>
+    <text x="1416" y="816" class="boxTitle" fill="#b45309">LDAP Directory /</text>
+    <text x="1416" y="834" class="boxLine">Kerberos KDC — federated</text>
+    <text x="1416" y="852" class="boxLine">(EditMode: read-only / writable)</text>
+  </g>
+
+  <line x1="370" y1="872" x2="370" y2="890" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1050" y1="872" x2="1050" y2="890" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1560" y1="872" x2="1560" y2="890" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <text x="900" y="885" class="lbl-it" fill="#475569">every source converges: one AuthenticationSessionModel, one UserModel, one KeycloakSession unit of work</text>
+
+  <!-- ============ ROW P : PERSISTENCE / CACHE ============ -->
+  <text x="40" y="886" class="bandName">Persistence &amp; cache — reached via KeycloakSession provider accessors</text>
+  <g class="box" stroke="#059669">
+    <rect x="40" y="892" width="660" height="130" rx="10"/>
+    <text x="56" y="916" class="boxTitle" fill="#047857">Infinispan Cache Decorator</text>
+    <text x="56" y="934" class="boxLine">RealmCacheSession · UserCacheSession</text>
+    <text x="56" y="952" class="boxLine">(also fronts LDAP-federated user lookups)</text>
+    <text x="56" y="970" class="boxLine">read-through / write + cluster-wide</text>
+    <text x="56" y="988" class="boxLine">invalidation events on every write</text>
+  </g>
+  <g class="box" stroke="#059669">
+    <rect x="720" y="892" width="660" height="130" rx="10"/>
+    <text x="736" y="916" class="boxTitle" fill="#047857">Infinispan Distributed Session Store</text>
+    <text x="736" y="934" class="boxLine">UserSessionModel · AuthenticatedClientSessionModel</text>
+    <text x="736" y="952" class="boxLine">AuthenticationSessionModel · brute-force counters</text>
+    <text x="736" y="970" class="boxLine">HA across cluster nodes; optional</text>
+    <text x="736" y="988" class="boxLine">DB-persistent sessions for restart survival</text>
+  </g>
+  <g class="box" stroke="#059669">
+    <rect x="1400" y="892" width="320" height="130" rx="10"/>
+    <text x="1416" y="916" class="boxTitle" fill="#047857">Liquibase</text>
+    <text x="1416" y="934" class="boxLine">schema migration at boot</text>
+    <text x="1416" y="952" class="boxLine">jpa-changelog-*.xml</text>
+    <text x="1416" y="970" class="boxLine">coordinated cluster-wide via</text>
+    <text x="1416" y="988" class="boxLine">DBLockProvider</text>
+  </g>
+
+  <line x1="370" y1="1022" x2="370" y2="1040" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1050" y1="1022" x2="1050" y2="1040" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+  <line x1="1560" y1="1022" x2="1560" y2="1040" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow-slate)"/>
+
+  <!-- ============ ROW P2 : RDBMS ============ -->
+  <g class="box" stroke="#059669">
+    <rect x="40" y="1042" width="1680" height="70" rx="10"/>
+    <text x="56" y="1068" class="boxTitle" fill="#047857">Relational Database  (PostgreSQL · MySQL · Oracle · MSSQL · ...)</text>
+    <text x="56" y="1086" class="boxLine">JPA entities via Hibernate — RealmEntity · ClientEntity · UserEntity · RoleEntity · GroupEntity · CredentialEntity · FederatedIdentityEntity · EventEntity · authorization-services entities</text>
+  </g>
+
+  <!-- ============ LEGEND ============ -->
+  <text x="40" y="1168" class="bandName">Legend</text>
+  <g font-size="12.5" fill="#334155">
+    <rect x="40" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#475569" stroke-width="2"/><text x="64" y="1192">Actor / external client</text>
+    <rect x="260" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="2"/><text x="284" y="1192">HTTP runtime</text>
+    <rect x="440" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/><text x="464" y="1192">REST endpoint / resource</text>
+    <rect x="680" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/><text x="704" y="1192">Core engine</text>
+    <rect x="860" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#a21caf" stroke-width="2"/><text x="884" y="1192">Authorization engine</text>
+    <rect x="1060" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="2"/><text x="1084" y="1192">SPI / extension point</text>
+    <rect x="1280" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/><text x="1304" y="1192">Identity source</text>
+    <rect x="1470" y="1180" width="16" height="16" rx="4" fill="#ffffff" stroke="#059669" stroke-width="2"/><text x="1494" y="1192">Persistence / cache</text>
+
+    <rect x="40" y="1208" width="16" height="16" rx="4" fill="#ffffff" stroke="#be123c" stroke-width="2"/><text x="64" y="1220">Kubernetes Operator (external control plane)</text>
+  </g>
+
+  <text x="40" y="1264" class="lbl-it">See docs/research/01-big-picture.md through 08-admin-api-events-operator.md for the class-by-class narrative behind every box above.</text>
+  <text x="40" y="1284" class="lbl-it">See diagrams/auth-sequence-multi-idp.svg for how local / LDAP-federated / brokered logins each traverse this diagram differently before converging.</text>
+</svg>
